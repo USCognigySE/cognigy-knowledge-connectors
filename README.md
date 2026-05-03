@@ -2,7 +2,7 @@
 
 A collection of [Cognigy.AI Knowledge Connectors](https://docs.cognigy.com/ai/for-developers/extensions#knowledge-connectors) — JavaScript modules that synchronize external knowledge bases into Cognigy [Knowledge Stores](https://docs.cognigy.com/ai/empower/knowledge-ai/knowledge-store/?h=knowled) on Cognigy's built-in sync schedule (daily by default in 2026.5+; time-of-day selectable in 2026.7+; manual "Sync now" available at any time).
 
-This repository is **not an official Cognigy product** — it is a personal collection built for customer POCs by an NA Professional Services SE. Use the official [Cognigy/Extensions](https://github.com/Cognigy/Extensions) repo as your default; reach for these when you need a connector Cognigy hasn't published.
+This repository is **not an official Cognigy product** — it is a personal collection built for customer POCs by a Cognigy Presales Solutions Engineer. Use the official [Cognigy/Extensions](https://github.com/Cognigy/Extensions) repo as your default; reach for these when you need a connector Cognigy hasn't published.
 
 ## Contents
 
