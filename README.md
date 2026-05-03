@@ -11,7 +11,6 @@ This repository is **not an official Cognigy product** — it is a personal coll
 | [freshdesk-knowledge](./freshdesk-knowledge/) | Freshdesk Solutions articles. One Knowledge Source per **folder** (`<Category> / <Folder>`), with delete/move/category-removal reconciliation. Uses HTTP Basic auth (API key). |
 | [microsoft-sharepoint-knowledge](./microsoft-sharepoint-knowledge/) | SharePoint document libraries (docx, pdf, txt, md, html, etc.) and modern Site Pages, via Microsoft Graph. Azure App Registration with `Sites.Read.All` + `Files.Read.All`. |
 | [service-now-knowledge](./service-now-knowledge/) | ServiceNow `kb_knowledge` articles (filterable by Knowledge Base, language, workflow state). Uses ServiceNow's scoped KM API over OAuth 2.0 Password Grant. |
-| [minimal-test-connector](./minimal-test-connector/) | A diagnostic / hello-world connector that creates one chunk. Useful for isolating Knowledge Store environment issues (auth, schedule, ingestion path) before debugging a real connector. |
 
 Each connector folder has its own README with the third-party setup steps, connection fields, source-instance fields, sync semantics, and a packaged `.tar.gz` ready to upload.
 

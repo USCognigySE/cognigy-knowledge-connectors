@@ -5,3 +5,6 @@ node_modules/
 .env.local
 .env.*.local
 Thumbs.db
+
+# Internal diagnostic — not for publish
+minimal-test-connector/
