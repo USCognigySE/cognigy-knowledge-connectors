@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.cognigy.com)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(tar tzf *)",
+      "Bash(curl -sL https://api.github.com/repos/Cognigy/Extensions/contents/extensions)",
+      "PowerShell($json = \\(Invoke-WebRequest -UseBasicParsing -Uri \"https://api.github.com/repos/Cognigy/Extensions/contents/extensions\"\\).Content | ConvertFrom-Json; $json | Where-Object { $_.name -match \"service|knowledge|sharepoint|confluence|crawl|web\" } | Select-Object name, type)",
+      "PowerShell($pkg = Invoke-WebRequest -UseBasicParsing -Uri \"https://registry.npmjs.org/@cognigy/extension-tools/latest\"; \\($pkg.Content | ConvertFrom-Json\\) | Select-Object name, version, description, main, types | Format-List)",
+      "PowerShell($src = \"$env:TEMP\\\\cognigy-extension-tools.tgz\"; $dst = \"$env:TEMP\\\\cognigy-extension-tools\"; if \\(Test-Path $dst\\) { Remove-Item $dst -Recurse -Force }; New-Item -ItemType Directory -Path $dst | Out-Null; tar -xzf $src -C $dst; Get-ChildItem $dst -Recurse | Select-Object FullName)",
+      "PowerShell($tar = \"C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Desktop\\\\Demo Stuff\\\\Knowledge Connectors\\\\service-now-knowledge\\\\service-now-knowledge.tar.gz\"; if \\(Test-Path $tar\\) { $info = Get-Item $tar; \"{0,-50} {1,10:N0} bytes  {2}\" -f $info.Name, $info.Length, $info.LastWriteTime } else { \"MISSING\" }; tar -tzf $tar)",
+      "Read(//c/Users/markle/OneDrive - NICE Ltd/Desktop/Demo Stuff/Knowledge Connectors/service-now-knowledge/**)",
+      "Bash(dir \"C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Desktop\\\\Demo Stuff\\\\Knowledge Connectors\\\\service-now-knowledge\\\\service-now-knowledge.tar.gz\")",
+      "Bash(./node_modules/.bin/tsc -p . --noEmit)",
+      "Bash(\"C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Documents\\\\GitHub\\\\Extensions\\\\extensions\\\\service-now\\\\node_modules\\\\.bin\\\\tsc.cmd\" -p \"C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Documents\\\\GitHub\\\\Extensions\\\\extensions\\\\service-now\" --noEmit)",
+      "PowerShell($dir = 'C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Documents\\\\GitHub\\\\Extensions\\\\extensions\\\\service-now'; & \"$dir\\\\node_modules\\\\.bin\\\\tsc.cmd\" -p $dir --noEmit 2>&1 | Select-Object -First 100)",
+      "PowerShell($dir = 'C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Documents\\\\GitHub\\\\Extensions\\\\extensions\\\\service-now'; Push-Location $dir; npm run build 2>&1 | Select-Object -Last 60; \"exit=$LASTEXITCODE\"; Pop-Location)",
+      "PowerShell($f = 'C:\\\\Users\\\\markle\\\\OneDrive - NICE Ltd\\\\Documents\\\\GitHub\\\\Extensions\\\\extensions\\\\service-now\\\\service-now.tar.gz'; if \\(Test-Path $f\\) { \\(Get-Item $f\\).FullName + ' | ' + \\(Get-Item $f\\).Length + ' bytes | ' + \\(Get-Item $f\\).LastWriteTime } else { 'missing' })"
+    ]
+  }
+}

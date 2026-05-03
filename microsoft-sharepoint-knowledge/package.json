@@ -1,0 +1,35 @@
+{
+  "name": "microsoft-sharepoint-knowledge",
+  "version": "1.0.0",
+  "description": "Cognigy.AI Knowledge Connector for Microsoft SharePoint (document libraries and site pages).",
+  "main": "build/module.js",
+  "scripts": {
+    "transpile": "tsc -p .",
+    "zip": "tar cfz microsoft-sharepoint-knowledge.tar.gz build/* package.json package-lock.json README.md icon.png",
+    "build": "npm run transpile && npm run zip"
+  },
+  "keywords": [
+    "Cognigy",
+    "Knowledge",
+    "Knowledge Connector",
+    "Microsoft",
+    "SharePoint",
+    "Graph"
+  ],
+  "author": "NICE Ltd",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^2.16.2",
+    "@cognigy/extension-tools": "^0.17.0",
+    "axios": "^1.7.7",
+    "html-to-text": "^9.0.5",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/html-to-text": "^9.0.4",
+    "@types/node": "^20.14.10",
+    "@types/pdf-parse": "^1.1.4",
+    "typescript": "^5.5.4"
+  }
+}

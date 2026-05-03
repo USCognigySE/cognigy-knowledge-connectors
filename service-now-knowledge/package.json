@@ -1,0 +1,30 @@
+{
+  "name": "service-now-knowledge",
+  "version": "1.0.0",
+  "description": "Cognigy.AI Knowledge Connector for ServiceNow Knowledge Base articles.",
+  "main": "build/module.js",
+  "scripts": {
+    "transpile": "tsc -p .",
+    "zip": "tar cfz service-now-knowledge.tar.gz build/* package.json package-lock.json README.md icon.png",
+    "build": "npm run transpile && npm run zip"
+  },
+  "keywords": [
+    "Cognigy",
+    "Knowledge",
+    "Knowledge Connector",
+    "ServiceNow",
+    "KB"
+  ],
+  "author": "NICE Ltd",
+  "license": "MIT",
+  "dependencies": {
+    "@cognigy/extension-tools": "^0.17.0",
+    "axios": "^1.7.7",
+    "html-to-text": "^9.0.5"
+  },
+  "devDependencies": {
+    "@types/html-to-text": "^9.0.4",
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.4"
+  }
+}
