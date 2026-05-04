@@ -42,9 +42,11 @@ npm run build      # transpile + tar
 
 Output is a `.tar.gz` in the folder. Drop a 64×64 `icon.png` in the project root before building if it's missing — `npm run build` requires one.
 
-## Contributing back upstream
+## Contributing
 
-If a connector here would benefit the wider community, the official path is to PR it against [Cognigy/Extensions](https://github.com/Cognigy/Extensions) — Knowledge Connectors live alongside Node Extensions in that repo. See the [approval process](https://github.com/Cognigy/Extensions#approval-process) in their README.
+PRs are welcome. The workflow (fork → branch → PR), folder structure, README requirements, and code conventions are all documented in **[CONTRIBUTING.md](./CONTRIBUTING.md)**. A PR template is provided to walk through the checklist on submission.
+
+If a connector here would also benefit the wider community, consider opening a parallel PR against [Cognigy/Extensions](https://github.com/Cognigy/Extensions) — Knowledge Connectors live alongside Node Extensions in that repo. See their [approval process](https://github.com/Cognigy/Extensions#approval-process).
 
 ## License
 
