@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveSite = resolveSite;
 exports.crawlSite = crawlSite;
+exports.getDefaultDrive = getDefaultDrive;
+exports.listImmediateSubfolders = listImmediateSubfolders;
+exports.crawlFolderTree = crawlFolderTree;
 const extractors_1 = require("./extractors");
 async function resolveSite(client, siteUrl) {
     const parsed = new URL(siteUrl);
@@ -36,6 +39,33 @@ async function* crawlDrives(client, site, options) {
             : `/drives/${drive.id}/root/children`;
         yield* walkFolder(client, rootPath, drive.name, options);
     }
+}
+async function getDefaultDrive(client, siteId) {
+    const drive = await client.get(`/sites/${siteId}/drive`);
+    return { id: drive.id, name: drive.name || "Documents" };
+}
+async function listImmediateSubfolders(client, driveId, driveName, parentPath) {
+    const listUrl = parentPath
+        ? `/drives/${driveId}/root:/${encodePath(parentPath)}:/children`
+        : `/drives/${driveId}/root/children`;
+    const results = [];
+    for await (const item of client.paginate(listUrl)) {
+        if (item.folder) {
+            results.push({
+                driveId,
+                driveName,
+                itemId: item.id,
+                name: item.name,
+                webUrl: item.webUrl,
+                parentPath
+            });
+        }
+    }
+    return results;
+}
+async function* crawlFolderTree(client, subfolder, options) {
+    const listUrl = `/drives/${subfolder.driveId}/items/${subfolder.itemId}/children`;
+    yield* walkFolder(client, listUrl, subfolder.driveName, options);
 }
 async function* walkFolder(client, listUrl, libraryName, options) {
     for await (const item of client.paginate(listUrl)) {

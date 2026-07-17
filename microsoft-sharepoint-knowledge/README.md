@@ -133,11 +133,43 @@ The connector uses Cognigy's **Connection** object for credentials (so the secre
 |---|---|---|
 | SharePoint connection | ✅ | Pick the connection created above |
 | SharePoint Site URL | ✅ | e.g. `https://contoso.sharepoint.com/sites/HR` |
+| Create one Knowledge Source per subfolder | — | Yes/No, default No. See section below. |
 | Include document libraries | — | Yes/No, default Yes |
-| Include site pages | — | Yes/No, default Yes |
-| Folder path filter | — | Limit crawl to a subpath of the default library |
+| Include site pages | — | Yes/No, default Yes (ignored in per-subfolder mode) |
+| Folder path filter | — | Limit crawl to a subpath of the default library. Required in per-subfolder mode. |
 | File type allowlist | — | Default `docx,pdf,txt,md,html,htm,aspx` |
 | Max file size (MB) | — | Default `25` |
+
+## Source-per-subfolder mode
+
+By default, one connector instance produces **one Knowledge Source** containing everything on the site. For a small, single-topic site this is fine. For a site that hosts many distinct topics (HR, IT, Products, Legal…), one big Source produces poor retrieval — see [Best practices](#best-practices--organizing-sharepoint-for-rag-quality) point 1.
+
+The **Create one Knowledge Source per subfolder** toggle lets a single connector instance materialise multiple Sources automatically:
+
+- Set **Folder path filter** to the *parent* folder (e.g. `KnowledgeBase`).
+- Toggle **Create one Knowledge Source per subfolder** to **Yes**.
+- On sync, the connector enumerates the immediate subfolders of that parent (e.g. `KnowledgeBase/HR`, `KnowledgeBase/IT`, `KnowledgeBase/Products`) and creates **one Knowledge Source per subfolder**, named after the subfolder. Files inside each subfolder (recursively) are ingested into that subfolder's Source.
+
+### Behavior details
+
+- **Site pages** are not ingested in this mode — the toggle is ignored. Use a second connector instance in single-source mode if you also want site pages.
+- **Empty subfolders** (no supported files) are skipped and do not create a Source.
+- **Rename / delete a subfolder in SharePoint** and its Source is auto-cleaned on the next sync (via the built-in orphan cleanup).
+- **Multiple libraries**: only the site's default document library is enumerated in this mode. Content in other libraries is ignored.
+- **externalIdentifier** is set to `<siteName>::<parentPath>/<subfolder>` so renames on the Cognigy side don't cause duplicates.
+
+### When to use each mode
+
+| Situation | Mode |
+|---|---|
+| Single topic per site (small wiki, one product's docs) | **Single-source** (default) |
+| One site hosts many topics organized into subfolders | **Source per subfolder** |
+| Content spans **multiple** SharePoint sites | Multiple connector instances (one per site) |
+| Different business units | Multiple connector instances, likely in different Knowledge Stores |
+
+### Multiple instances of the same connector
+
+You do **not** need to reinstall the extension to add another instance. The extension registers the SharePoint connector type once; you can then add as many Knowledge Source instances of it as you want — different sites, different Stores, different modes — by using Build → Knowledge → Add Knowledge → Microsoft SharePoint each time.
 
 ## Sync schedule
 
@@ -155,9 +187,10 @@ The connector reads whatever you point it at, verbatim. The single biggest lever
 
 A single Knowledge Source ingesting 4,000+ documents spanning HR policy, IT tickets, product manuals, and press releases will retrieve poorly — the LLM has no way to prefer the right topic. The retriever ranks purely by semantic similarity, and "policy" language repeats across many topics.
 
-Two ways to split:
+Three ways to split (in order of simplicity):
 
-- **Folder-per-topic + Folder path filter (preferred, one site).** Organise the library into top-level folders — `HR/`, `IT/`, `Products/`, `Legal/` — and add **one connector instance per folder**, each with a different **Folder path filter** and named accordingly. Each instance becomes its own Knowledge Source that Cognigy can tag and route to.
+- **Source per subfolder (recommended, single instance).** Organise the library into top-level folders — `KnowledgeBase/HR/`, `KnowledgeBase/IT/`, `KnowledgeBase/Products/`, `KnowledgeBase/Legal/` — and use **one connector instance** with Folder path set to `KnowledgeBase` and *Create one Knowledge Source per subfolder = Yes*. The connector auto-creates one Source per subfolder. See [Source-per-subfolder mode](#source-per-subfolder-mode).
+- **Folder-per-topic + one instance per folder.** Same folder layout, but add a separate connector instance per folder (each with its own Folder path). More UI clicks; useful if you want per-folder scheduling.
 - **Site-per-topic (more overhead, cleaner permissions).** Split into multiple SharePoint sites, one connector instance per site.
 
 ### 2. Keep individual documents narrow and self-contained

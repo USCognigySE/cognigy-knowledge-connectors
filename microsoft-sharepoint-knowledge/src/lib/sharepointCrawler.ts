@@ -19,12 +19,24 @@ export interface CrawledDocument {
 	};
 }
 
-export interface CrawlOptions {
+export interface FileFilterOptions {
+	allowedExtensions: string[];
+	maxFileSizeBytes: number;
+}
+
+export interface CrawlOptions extends FileFilterOptions {
 	includeLibraries: boolean;
 	includePages: boolean;
 	folderPath?: string;
-	allowedExtensions: string[];
-	maxFileSizeBytes: number;
+}
+
+export interface SubfolderRef {
+	driveId: string;
+	driveName: string;
+	itemId: string;
+	name: string;
+	webUrl: string;
+	parentPath: string;
 }
 
 export async function resolveSite(client: GraphClient, siteUrl: string): Promise<SiteRef> {
@@ -73,11 +85,53 @@ async function* crawlDrives(
 	}
 }
 
+export async function getDefaultDrive(
+	client: GraphClient,
+	siteId: string
+): Promise<{ id: string; name: string }> {
+	const drive: any = await client.get(`/sites/${siteId}/drive`);
+	return { id: drive.id, name: drive.name || "Documents" };
+}
+
+export async function listImmediateSubfolders(
+	client: GraphClient,
+	driveId: string,
+	driveName: string,
+	parentPath: string
+): Promise<SubfolderRef[]> {
+	const listUrl = parentPath
+		? `/drives/${driveId}/root:/${encodePath(parentPath)}:/children`
+		: `/drives/${driveId}/root/children`;
+	const results: SubfolderRef[] = [];
+	for await (const item of client.paginate<any>(listUrl)) {
+		if (item.folder) {
+			results.push({
+				driveId,
+				driveName,
+				itemId: item.id,
+				name: item.name,
+				webUrl: item.webUrl,
+				parentPath
+			});
+		}
+	}
+	return results;
+}
+
+export async function* crawlFolderTree(
+	client: GraphClient,
+	subfolder: SubfolderRef,
+	options: FileFilterOptions
+): AsyncGenerator<CrawledDocument, void, unknown> {
+	const listUrl = `/drives/${subfolder.driveId}/items/${subfolder.itemId}/children`;
+	yield* walkFolder(client, listUrl, subfolder.driveName, options);
+}
+
 async function* walkFolder(
 	client: GraphClient,
 	listUrl: string,
 	libraryName: string,
-	options: CrawlOptions
+	options: FileFilterOptions
 ): AsyncGenerator<CrawledDocument, void, unknown> {
 	for await (const item of client.paginate<any>(listUrl)) {
 		if (item.folder) {
