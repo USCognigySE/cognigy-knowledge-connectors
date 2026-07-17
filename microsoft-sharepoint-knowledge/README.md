@@ -235,6 +235,23 @@ The connector chunks text at ~1,200 characters (paragraph-aware). Large image-he
 
 Cognigy's per-Source ceiling is 1,000 chunks (~250 short documents, roughly). If a Knowledge Source approaches that limit, retrieval slows and quality drops. Split into multiple Sources long before you hit it — see item 1.
 
+## Stopping or aborting a running sync
+
+Cognigy.AI does **not** currently expose a first-class "cancel sync" button, and the Knowledge Connector SDK gives connector code no cancellation signal to listen for. Once a sync starts, there is no graceful way to interrupt it from either side.
+
+**Treat "Save & Sync" as an irreversible action.** Verify every field (Site URL, Folder path, per-subfolder toggle, file-type allowlist) *before* clicking Save. A misconfigured sync on a large SharePoint site can otherwise run for many minutes ingesting the wrong content.
+
+If a sync has already started and you need to stop it, these are the practical workarounds — none are graceful, and each has a cost:
+
+| Situation | Workaround |
+|---|---|
+| You spot the mistake **before** clicking Save & Sync | Cancel the dialog. Nothing has started. |
+| Sync has just launched and is ingesting the wrong content | **Delete the Knowledge Source** while it's running. Cognigy typically aborts the ingest when its target Source disappears. The next sync will start fresh with the corrected config. |
+| Extension is uploaded and you need to prevent *all* syncs of this type | **Uninstall the extension** in Manage → Extensions. All Knowledge Sources of this connector type will then fail their next scheduled sync (safe fail — content already ingested stays intact until you delete it). |
+| Runaway sync you can't reach via the UI | Open a ticket with Cognigy support. |
+
+Content already ingested into Cognigy is not automatically rolled back by any of the above — the Knowledge Source (if not deleted) retains whatever chunks made it in before the interruption. On the next successful sync, `upsertKnowledgeSource` reconciles state via the content hash.
+
 ## Troubleshooting
 
 - **401 / invalid_client** — wrong tenant or client ID, or secret has expired. Regenerate the secret in Azure.
