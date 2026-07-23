@@ -1,5 +1,5 @@
-const DEFAULT_CHUNK_CHARS = 1200;
-const DEFAULT_OVERLAP_CHARS = 150;
+const DEFAULT_CHUNK_CHARS = 1800;
+const DEFAULT_OVERLAP_CHARS = 200;
 
 export interface ChunkOptions {
 	maxChars?: number;

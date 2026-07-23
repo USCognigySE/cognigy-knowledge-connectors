@@ -1,6 +1,6 @@
 {
   "name": "microsoft-sharepoint-knowledge",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "Cognigy.AI Knowledge Connector for Microsoft SharePoint (document libraries and site pages).",
   "main": "build/module.js",
   "scripts": {

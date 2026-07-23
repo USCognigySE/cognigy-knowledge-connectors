@@ -252,12 +252,56 @@ If a sync has already started and you need to stop it, these are the practical w
 
 Content already ingested into Cognigy is not automatically rolled back by any of the above — the Knowledge Source (if not deleted) retains whatever chunks made it in before the interruption. On the next successful sync, `upsertKnowledgeSource` reconciles state via the content hash.
 
-## Troubleshooting
+## Diagnosing sync failures
 
-- **401 / invalid_client** — wrong tenant or client ID, or secret has expired. Regenerate the secret in Azure.
-- **403 on /sites or /drives**
-  - *Option A:* admin consent wasn't granted, or `Sites.Read.All` / `Files.Read.All` are missing.
-  - *Option B:* the app has `Sites.Selected` but hasn't been granted access to *this specific site* yet (see step 2 above), or the grant hasn't propagated.
-- **404 on site resolve** — the Site URL doesn't match an existing site. Paste the exact URL as shown in the browser address bar.
-- **Pages not appearing** — modern SharePoint site pages only; classic publishing pages are not exposed by Graph. On `Sites.Selected`, also see the note in Option B above.
-- **Large PDFs skipped** — raise the Max file size (MB) field.
+Cognigy shows one error line per failed sync — usually `Error while executing extension: Error: ...` followed by whatever the connector threw. The message is often generic ("Error while creating chunk in source with id X"). Follow this flow to isolate the actual cause **before** changing any connector code.
+
+### Step 1 — Is the Cognigy environment able to accept chunks at all?
+
+Bypass this connector entirely first.
+
+1. **Build → Knowledge → open the failing Knowledge Store → + Add Knowledge → File Upload.**
+2. Drop in any small plain-text `.txt` file (a few paragraphs of benign content).
+3. Wait for it to process.
+
+| Result | Meaning |
+|---|---|
+| ✅ Uploads and indexes cleanly (~10s) | The Cognigy platform (embedding provider + vector database) is healthy. Skip to Step 2. |
+| ❌ Errors — including *"Failed to ingest chunks into the vector database"* | The environment is broken. Fix it before touching the connector. See "Common platform-level failures" below. |
+| ❌ Errors — *"Error while creating chunk in source with id X"* | Same as above. This exact message from a manual upload is a platform issue, not a connector issue. |
+
+### Step 2 — Is the SharePoint content the problem?
+
+If manual upload works but the SharePoint sync still fails, the error message will now include the Source name, chunk index, doc title, and text length (thrown from this connector). Common causes:
+
+- **Chunk count over the 1,000-cap** — since v1.1.2 the connector throws a clean error naming the Source and its chunk count. Fix by splitting content (Folder path filter, Source-per-subfolder mode, narrower file-type allowlist).
+- **A specific PDF is unreadable** — password-protected or corrupt. The connector logs and skips these internally, but a very large percentage of unreadable files can produce zero-content Sources. Check the source library.
+- **Graph 401 mid-sync** — the OAuth token expires after ~1 hour. Very large syncs (thousands of files) can exceed this. Not currently handled by refresh; open an issue if you hit it.
+
+### Common platform-level failures (found in Step 1)
+
+These are Cognigy-side, not connector-side. Fix them first.
+
+- **Vector-database dimension mismatch.** The most common cause of *"Failed to ingest chunks into the vector database"*. The vector store was created expecting one embedding-dimension (e.g. 3,072 for `text-embedding-3-large`), but the embedding model was later switched to one producing different dimensions (e.g. 1,536 for `text-embedding-3-small`). Dimensions can't be changed in place. **Fix:** delete all Knowledge Stores using this embedding, reconfigure the embedding model, recreate the Stores.
+
+- **LLM/embedding "configured" in the UI but not actually working.** The Cognigy admin page shows a model is set, but requests fail. Ways this happens:
+  - Bad or expired OpenAI/Azure API key.
+  - **Azure OpenAI deployment-name mismatch** — Cognigy asks for a *deployment name*, not the model's underlying name. Azure lets deployment names be arbitrary strings. If Cognigy is set to `text-embedding-3-small` but the actual Azure deployment is named `embed-small-eastus`, every request 404s and surfaces here as the generic error.
+  - The wrong model *type* is selected (e.g. a chat-completion model configured where an embedding model is expected).
+  - Model deployed with zero TPM quota — every request fails immediately.
+  - Wrong Azure `api-version` string.
+
+- **Vector-database service unhealthy.** Rare, but backend storage/pgvector/etc. can be down or over-capacity. The manual upload test surfaces this.
+
+## Troubleshooting (specific error signatures)
+
+- **401 / invalid_client** during sync — wrong tenant or client ID, or the client secret has expired. Regenerate the secret in Azure App Registration.
+- **403 on `/sites` or `/drives`**
+  - *Option A auth:* admin consent wasn't granted, or `Sites.Read.All` / `Files.Read.All` are missing.
+  - *Option B (`Sites.Selected`):* the app hasn't been granted access to this specific site yet (see step 2 of Option B above), or the grant hasn't propagated.
+- **404 on site resolve** — the Site URL doesn't match an existing site. Paste the exact URL from the browser address bar. Do **not** include library or folder paths (e.g. `/sites/HR/Shared%20Documents` is wrong; `/sites/HR` is right).
+- **"Knowledge Source X would contain N chunks, exceeding Cognigy's cap of 1000..."** — thrown by this connector's pre-flight guard. Split the content: Folder path filter, Source-per-subfolder mode, or narrower file-type allowlist.
+- **"Error while creating chunk in source with id X"** on chunk 1 — nearly always a **platform-level** failure. Run the Step 1 diagnostic (upload a small text file directly). If that also fails, fix the platform, not the connector.
+- **Pages not appearing** — modern SharePoint site pages only; classic publishing pages are not exposed by Graph. On `Sites.Selected` also see the note in Option B above.
+- **Large PDFs silently skipped** — raise the Max file size (MB) field.
+- **Sync appears to complete but retrieval returns unrelated chunks** — one big Source ingesting many topics. See [Best practices](#best-practices--organising-sharepoint-for-rag-quality) point 1 and consider Source-per-subfolder mode.

@@ -18,6 +18,8 @@ import { sanitizeText } from "../lib/extractors";
 type ChunkData = Record<string, string | number | boolean>;
 type PreparedChunk = { text: string; data: ChunkData };
 
+const MAX_CHUNKS_PER_SOURCE = 1000;
+
 export const sharepointKnowledgeConnector = createKnowledgeConnector({
 	type: "sharepoint",
 	label: "Microsoft SharePoint",
@@ -222,6 +224,16 @@ async function ingestSource(
 
 	if (preparedChunks.length === 0) {
 		return false;
+	}
+
+	if (preparedChunks.length > MAX_CHUNKS_PER_SOURCE) {
+		throw new Error(
+			`Knowledge Source "${name}" would contain ${preparedChunks.length} chunks, ` +
+			`exceeding Cognigy's cap of ${MAX_CHUNKS_PER_SOURCE} chunks per Source. ` +
+			`Reduce content in this Source: split the content across multiple SharePoint ` +
+			`subfolders and enable "Create one Knowledge Source per subfolder", ` +
+			`use a Folder path filter to scope the crawl, or narrow the File type allowlist.`
+		);
 	}
 
 	const contentHash = crypto
